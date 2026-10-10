@@ -1,18 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, ConfigDict
 from database.connection import get_db
 from database.models import Test
+from schemas import TestCreate
 # from schemas import TestResponse
 
-class TestResponse(BaseModel):
-    id: int
-    title: str
-    description: str | None
-    duration_minutes: int
-    is_active: bool
 
-    model_config = ConfigDict(from_attributes=True)
+
 app = FastAPI(
     title="Test Series API",
     version="1.0.0"
@@ -32,6 +26,21 @@ def health():
         "status": "OK"
     }
 
+@app.post("/tests")
+def create_tests(test : TestCreate, db: Session = Depends(get_db)):
+    new_test = Test(
+        title=test.title,
+        description=test.description,
+        duration_minutes=test.duration_minutes,
+        is_active=test.is_active
+    )
+
+    db.add(new_test)
+    db.commit()
+    db.refresh(new_test)
+
+    return new_test
+
 
 @app.get("/tests")
 def get_tests(db: Session = Depends(get_db)):
@@ -41,7 +50,7 @@ def get_tests(db: Session = Depends(get_db)):
     ).all()
 
     return tests
-@app.get("/tests/{test_id}", response_model=TestResponse)
+@app.get("/tests/{test_id}")
 def get_test(
     test_id: int,
     db: Session = Depends(get_db)
