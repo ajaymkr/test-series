@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from database.connection import get_db
 from database.models import Test
 from schemas.schemas import TestCreate
-from routers import user
+from routers import user,test,attempt
+from fastapi.middleware.cors import CORSMiddleware
 # from schemas import TestResponse
 
 
@@ -13,9 +14,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5500"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization"],
+)
+
 app.include_router(user.router)
-
-
+app.include_router(test.router)
+app.include_router(attempt.router)
 @app.get("/")
 def root():
     return {
