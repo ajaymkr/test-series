@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from .connection import Base
 
@@ -12,6 +13,13 @@ class User(Base):
     password_hash = Column(Text, nullable=False)
     role = Column(String(20), nullable=False)
     created_at = Column(DateTime)
+    # Test categories assigned to this user
+    eligible_tests = Column(
+        ARRAY(String),
+        nullable=False,
+        default=list,
+        server_default="{}"
+    )
 
 
 class Test(Base):

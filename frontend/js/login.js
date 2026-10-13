@@ -30,7 +30,7 @@ form.addEventListener("submit", async function (event) {
         }
 
         // Save the token for this browser session.
-        sessionStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("access_token", data.access_token);
 
         message.textContent = "Login successful!";
 

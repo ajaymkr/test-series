@@ -1,13 +1,59 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Test Series Dashboard</title>
+
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
+
 <body>
-    <h1>Welcome to Test Series</h1>
-    <p>You have successfully logged in.</p>
+
+    <!-- Header -->
+    <header class="header">
+
+        <div class="logo">
+            Test Series
+        </div>
+
+        <button id="logoutBtn" class="logout-btn">
+            Logout
+        </button>
+
+    </header>
+
+
+    <!-- Main Content -->
+    <main class="container">
+
+        <section class="welcome-section">
+            <h1>Welcome to Test Series</h1>
+
+            <p>
+                Select the test series you are eligible for.
+            </p>
+        </section>
+
+
+        <!-- Test Categories -->
+        <section class="test-section">
+            <h2>Available Test Series</h2>
+
+            <div id="testGrid" class="test-grid"></div>
+
+            <p id="message"></p>
+        </section>
+
+    </main>
+
+
+    <script src="js/dashboard.js"></script>
+
 </body>
+
 </html>
+```
