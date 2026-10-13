@@ -43,7 +43,7 @@ from sqlalchemy.orm import Session
 
 from database.connection import get_db
 from database.models import User
-from schemas.auth import LoginRequest, LoginResponse
+from schemas.auth import LoginRequest, LoginResponse, UserResponse
 from services.auth_service import authenticate_user, create_access_token
 
 router = APIRouter(
@@ -52,7 +52,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("/", response_model= list[UserResponse])
 def get_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 
