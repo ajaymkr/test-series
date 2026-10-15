@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000/tests/";
+const API_URL = "http://127.0.0.1:8000/tests/category/";
 
 const token = localStorage.getItem("access_token");
 
@@ -55,7 +55,7 @@ async function loadTests(category) {
         message.textContent = "Loading tests...";
 
         const response = await fetch(
-            `${API_URL}?category=${encodeURIComponent(category)}`,
+            `${API_URL}${encodeURIComponent(category)}`,
             {
                 method: "GET",
 

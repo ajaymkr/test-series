@@ -31,6 +31,7 @@ class Test(Base):
     duration_minutes = Column(Integer, nullable=False)
     is_active = Column(Boolean)
     created_at = Column(DateTime)
+    category = Column(String(200))
 
 
 class Question(Base):

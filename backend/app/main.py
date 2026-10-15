@@ -1,9 +1,10 @@
+from services import question
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database.connection import get_db
 from database.models import Test
 from schemas.schemas import TestCreate
-from routers import user,test,attempt
+from routers import user,test,attempt,question
 from fastapi.middleware.cors import CORSMiddleware
 # from schemas import TestResponse
 
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(user.router)
 app.include_router(test.router)
 app.include_router(attempt.router)
+app.include_router(question.router)
 @app.get("/")
 def root():
     return {
