@@ -6,7 +6,7 @@ load_dotenv()
 print("Loading environment variables from .env file...")
 key = os.getenv("DATABASE_PASSWORD")
 print("key : ", key)
-DATABASE_URL = f"postgresql://postgres:{key}@localhost:5432/test_series_db"
+DATABASE_URL = f"postgresql://postgres:{key}@localhost:5432/postgres"
 
 engine = create_engine(DATABASE_URL)
 

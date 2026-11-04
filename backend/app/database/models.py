@@ -13,14 +13,17 @@ class User(Base):
     password_hash = Column(Text, nullable=False)
     role = Column(String(20), nullable=False)
     created_at = Column(DateTime)
-    # Test categories assigned to this user
-    eligible_tests = Column(
-        ARRAY(String),
-        nullable=False,
-        default=list,
-        server_default="{}"
-    )
-
+    
+class Category(Base):    
+    __tablename__ = "categories"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    user_id = Column(
+            Integer,
+            ForeignKey("users.id", ondelete="CASCADE"),
+            nullable=False
+        )
+         
 
 class Test(Base):
     __tablename__ = "tests"
@@ -31,14 +34,18 @@ class Test(Base):
     duration_minutes = Column(Integer, nullable=False)
     is_active = Column(Boolean)
     created_at = Column(DateTime)
-    category = Column(String(200))
+    category_id = Column(
+                Integer,
+                ForeignKey("categories.id", ondelete="CASCADE"),
+                nullable=False
+            )
 
 
 class Question(Base):
     __tablename__ = "questions"
 
     id = Column(Integer, primary_key=True)
-    test_id = Column(
+    question_id = Column(
         Integer,
         ForeignKey("tests.id", ondelete="CASCADE"),
         nullable=False

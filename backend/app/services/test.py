@@ -20,3 +20,18 @@ def get_tests_by_category(category: str, db: Session):
     tests = db.query(Test).filter(Test.category == category).all()
 
     return tests
+
+def post_test(test , db):
+    new_test = Test(
+        title=test.title,
+        description=test.description,
+        duration_minutes=test.duration_minutes,
+        is_active=test.is_active,
+        created_at=test.created_at,
+        category_id=test.category_id
+    )
+    db.add(new_test)
+    db.commit()
+    db.refresh(new_test)
+
+    return new_test

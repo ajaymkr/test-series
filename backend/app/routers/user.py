@@ -5,41 +5,44 @@ from database.models import User
 # from routers import test
 from database.models import User
 from fastapi import APIRouter,Depends,HTTPException
-from services.user import get_users
+from services.user import get_users, create_users
 from sqlalchemy.orm import Session
 from database.connection import get_db
+from schemas.user import UserCreate
 
-router = APIRouter(
-    prefix="/users",
-    tags=["users"]
-)
-print("Users router loaded")
-@router.get("/")
-def read_users(db: Session = Depends(get_db)):
-    a = get_users(db)
-    return a
+# router = APIRouter(
+#     prefix="/users",
+#     tags=["users"]
+# )
+# print("Users router loaded")
+# @router.get("/")
+# def read_users(db: Session = Depends(get_db)):
+#     a = get_users(db)
+#     return a
 
-@router.get("/users/{user_id}")
-def get_user(
-    user_id: int,
-    db: Session = Depends(get_db)
-):
+# @router.get("/users/{user_id}")
+# def get_user(
+#     user_id: int,
+#     db: Session = Depends(get_db)
+# ):
 
-    user = db.query(User).filter(
-        User.id == user_id
-    ).first()
+#     user = db.query(User).filter(
+#         User.id == user_id
+#     ).first()
 
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
+#     if not user:
+#         raise HTTPException(
+#             status_code=404,
+#             detail="User not found"
+#         )
 
-    return user
+#     return user
+
 
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from schemas.user import UserCreate
 
 from database.connection import get_db
 from database.models import User
@@ -51,8 +54,15 @@ router = APIRouter(
     tags=["users"]
 )
 
+@router.post("/")
+def post_users(test : UserCreate, db: Session = Depends(get_db)):
+    a =create_users(test,db)
+    return a 
+    
 
-@router.get("/", response_model= list[UserResponse])
+
+
+@router.get("/", response_model= list[UserCreate])
 def get_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 

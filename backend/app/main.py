@@ -1,11 +1,14 @@
 from services import question
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from database.connection import get_db
+from database.connection import get_db, Base, engine
 from database.models import Test
 from schemas.schemas import TestCreate
-from routers import user,test,attempt,question
+from routers import user,test,attempt,question,category
 from fastapi.middleware.cors import CORSMiddleware
+
+from database import models
+
 # from schemas import TestResponse
 
 
@@ -14,6 +17,11 @@ app = FastAPI(
     title="Test Series API",
     version="1.0.0"
 )
+
+# pip install alembic
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,6 +35,7 @@ app.include_router(user.router)
 app.include_router(test.router)
 app.include_router(attempt.router)
 app.include_router(question.router)
+app.include_router(category.router)
 @app.get("/")
 def root():
     return {
