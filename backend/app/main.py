@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from database.connection import get_db, Base, engine
 from database.models import Test
 from schemas.schemas import TestCreate
-from routers import user,test,attempt,question,category
+from routers import user,test,attempt,question,category,option
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import models
@@ -25,17 +25,22 @@ def on_startup():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500"],
+    allow_origins=["http://127.0.0.1:5500","http://localhost:5173"],
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
 app.include_router(user.router)
-app.include_router(test.router)
-app.include_router(attempt.router)
-app.include_router(question.router)
 app.include_router(category.router)
+app.include_router(test.router)
+app.include_router(question.router)
+app.include_router(option.router)
+app.include_router(attempt.router)
+
+
+app.include_router(option.router)
+
 @app.get("/")
 def root():
     return {

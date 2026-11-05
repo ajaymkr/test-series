@@ -1,7 +1,8 @@
 from fastapi import APIRouter,Depends
-from services.question import get_questions
+from services.question import get_questions,post_question
 from sqlalchemy.orm import Session
 from database.connection import get_db
+from schemas.question import QuestionCreate
 
 router = APIRouter(
     prefix="/questions",
@@ -12,6 +13,11 @@ print("Questions router loaded")
 def read_questions(db: Session = Depends(get_db)):
     a = get_questions(db)
     return a
+
+@router.post("/")
+def create_question(test : QuestionCreate, db: Session = Depends(get_db)):
+    a =post_question(test,db)
+    return a 
 
 # @router.get("/{test_id}")
 # def read_test_id(test_id: int, db: Session = Depends(get_db)):

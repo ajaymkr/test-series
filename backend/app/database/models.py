@@ -45,7 +45,7 @@ class Question(Base):
     __tablename__ = "questions"
 
     id = Column(Integer, primary_key=True)
-    question_id = Column(
+    test_id = Column(
         Integer,
         ForeignKey("tests.id", ondelete="CASCADE"),
         nullable=False

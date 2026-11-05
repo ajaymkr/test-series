@@ -5,7 +5,7 @@ from database.models import User
 # from routers import test
 from database.models import User
 from fastapi import APIRouter,Depends,HTTPException
-from services.user import get_users, create_users
+from services.user import get_users, create_users,get_user
 from sqlalchemy.orm import Session
 from database.connection import get_db
 from schemas.user import UserCreate
@@ -42,7 +42,7 @@ from schemas.user import UserCreate
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from schemas.user import UserCreate
+from schemas.user import UserCreate,UserGet
 
 from database.connection import get_db
 from database.models import User
@@ -62,9 +62,14 @@ def post_users(test : UserCreate, db: Session = Depends(get_db)):
 
 
 
-@router.get("/", response_model= list[UserCreate])
-def get_users(db: Session = Depends(get_db)):
+@router.get("/users/", response_model= list[UserCreate])
+def list_users(db: Session = Depends(get_db)):
     return db.query(User).all()
+
+@router.get("/", response_model= UserGet)
+def list_user(user_id: int,db: Session = Depends(get_db)):
+    a =get_user(user_id,db)
+    return a 
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -84,7 +89,8 @@ def login(
 
     return {
         "access_token": token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "user_id": user.id
     }
 
 

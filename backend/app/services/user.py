@@ -10,6 +10,11 @@ def get_users(db):
 
     return users
 
+def get_user(user_id, db):
+    users = db.query(User).filter(User.id == user_id).first()
+
+    return users
+
 def create_users(user , db):
     new_user = User(
         name=user.name,
@@ -18,10 +23,6 @@ def create_users(user , db):
         role=user.role,
         created_at=user.created_at
     )
-    
-
-        
-
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

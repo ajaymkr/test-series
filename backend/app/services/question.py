@@ -10,13 +10,15 @@ def get_questions(db: Session):
 
     return questions
 
-# def get_tests_id(test_id: int, db: Session):
+def post_question(question , db):
+    new_question = Question(
+        test_id=question.test_id,
+        question_text=question.question_text,
+        marks=question.marks,
+    )
+    db.add(new_question)
+    db.commit()
+    db.refresh(new_question)
 
-#     test = db.query(Test).filter(Test.id == test_id).first()
-
-#     return test
-
-# def get_tests_by_category(category: str, db: Session):
-#     tests = db.query(Test).filter(Test.category == category).all()
-
-#     return tests
+    return new_question
+    

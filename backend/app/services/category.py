@@ -5,8 +5,18 @@ from database.models import Category
 from schemas.category import CategoryCreate
 
 
-def get_category(db):
+def list_category(db):
     users = db.query(Category).all()
+
+    return users
+
+def read_category(category_id, db):
+    users = db.query(Category).filter(Category.id == category_id).first()
+
+    return users
+
+def read_category_by_user_id(user_id, db):
+    users = db.query(Category).filter(Category.user_id == user_id).all()
 
     return users
 
