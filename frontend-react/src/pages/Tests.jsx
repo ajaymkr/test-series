@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 function Tests() {
   const { categoryId } = useParams();
+  const navigate = useNavigate();
 
   const [tests, setTests] = useState([]);
   const [error, setError] = useState("");
@@ -19,7 +20,7 @@ function Tests() {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
-              accept: "application/json",
+              Accept: "application/json",
             },
           }
         );
@@ -29,6 +30,7 @@ function Tests() {
         }
 
         const data = await response.json();
+
         setTests(data);
       } catch (error) {
         setError(error.message);
@@ -40,18 +42,23 @@ function Tests() {
     fetchTests();
   }, [categoryId]);
 
+  const startTest = (testId) => {
+    navigate(`/questions/${testId}`);
+  };
+
   return (
     <div style={{ padding: "20px" }}>
       <h2>Available Tests</h2>
+
       <p>Category ID: {categoryId}</p>
 
       {loading && <p>Loading tests...</p>}
+
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <div
         style={{
           display: "flex",
-          flexDirection: "row",
           flexWrap: "wrap",
           gap: "20px",
           marginTop: "20px",
@@ -95,6 +102,7 @@ function Tests() {
 
             <button
               disabled={!test.is_active}
+              onClick={() => startTest(test.id)}
               style={{
                 padding: "10px 20px",
                 backgroundColor: test.is_active ? "#2563eb" : "#999",

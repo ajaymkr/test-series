@@ -4,9 +4,9 @@ from database.connection import get_db
 from database.models import Question
 
 
-def get_questions(db: Session):
+def get_questions_by_test_id(test_id,db: Session):
 
-    questions = db.query(Question).all()
+    questions = db.query(Question).filter(Question.test_id==test_id).all()
 
     return questions
 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter,Depends
-from services.option import get_option, post_option
+from services.option import get_option_by_question_id, post_option
 from sqlalchemy.orm import Session
 from database.connection import get_db
 from schemas.option import OptionCreate
@@ -10,8 +10,8 @@ router = APIRouter(
 )
 print("Tests router loaded")
 @router.get("/")
-def read_option(db: Session = Depends(get_db)):
-    a = get_option(db)
+def read_option_by_question_id(question_id: int,db: Session = Depends(get_db)):
+    a = get_option_by_question_id(question_id,db)
     return a
 
 # @router.get("/{test_id}")

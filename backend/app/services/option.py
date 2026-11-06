@@ -5,8 +5,8 @@ from database.models import Option
 from schemas.option import OptionCreate
 
 
-def get_option(db):
-    options = db.query(Option).all()
+def get_option_by_question_id(question_id,db):
+    options = db.query(Option).filter(Option.question_id==question_id).all()
 
     return options
 
