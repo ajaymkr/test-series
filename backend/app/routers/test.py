@@ -20,9 +20,11 @@ def read_test_id(test_id: int, db: Session = Depends(get_db)):
     
     return a
 
-@router.get("/category/{category}")
-def read_tests_by_category(category: str, db: Session = Depends(get_db)):
-    a = get_tests_by_category(category, db)
+@router.get("/category/")
+def read_tests_by_category(category_id: int, db: Session = Depends(get_db)):
+    print("Ajay Kumar")
+    a = get_tests_by_category(category_id, db)
+    
     return a
 
 @router.post("/")

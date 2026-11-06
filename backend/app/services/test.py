@@ -16,9 +16,10 @@ def get_tests_id(test_id: int, db: Session):
 
     return test
 
-def get_tests_by_category(category: str, db: Session):
-    tests = db.query(Test).filter(Test.category == category).all()
-
+def get_tests_by_category(category_id: int, db: Session):
+   
+    tests = db.query(Test).filter(Test.category_id == category_id).all()
+   
     return tests
 
 def post_test(test , db):

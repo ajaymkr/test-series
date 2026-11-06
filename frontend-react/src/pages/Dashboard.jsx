@@ -1,10 +1,12 @@
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
 
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
 
@@ -13,13 +15,11 @@ function Dashboard() {
 
     const fetchCategories = async () => {
       try {
-// http://127.0.0.1:8000/categories/user_id?user_id=1
         const response = await fetch(
           `http://127.0.0.1:8000/categories/user_id?user_id=${userId}`,
           {
-            method: "GET",
             headers: {
-              "Authorization": `Bearer ${token}`
+              Authorization: `Bearer ${token}`
             }
           }
         );
@@ -29,7 +29,6 @@ function Dashboard() {
         }
 
         const data = await response.json();
-
         setCategories(data);
 
       } catch (error) {
@@ -45,6 +44,10 @@ function Dashboard() {
 
   }, []);
 
+  const handleCategoryClick = (categoryId) => {
+    navigate(`/tests/${categoryId}`);
+  };
+
   return (
     <div>
       <h2>My Dashboard</h2>
@@ -53,16 +56,18 @@ function Dashboard() {
 
       {error && <p>{error}</p>}
 
-      {categories.length > 0 ? (
-        categories.map((category) => (
-          <div key={category.id}>
-            <button>
-              {category.name}
-            </button>
-          </div>
-        ))
-      ) : (
-        !error && <p>Loading categories...</p>
+      {categories.map((category) => (
+        <div key={category.id}>
+          <button
+            onClick={() => handleCategoryClick(category.id)}
+          >
+            {category.name}
+          </button>
+        </div>
+      ))}
+
+      {categories.length === 0 && !error && (
+        <p>Loading categories...</p>
       )}
 
     </div>
