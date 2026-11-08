@@ -11,12 +11,24 @@ function Questions() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
+  // 1. Fetch all questions for the selected test
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    let cancelled = false;
 
     const fetchQuestions = async () => {
       try {
+        setLoading(true);
+        setError("");
+
+        // Reset previous test data
+        setQuestions([]);
+        setAnswers({});
+        setCurrentIndex(0);
+
+        const token = localStorage.getItem("access_token");
+
         const response = await fetch(
           `http://127.0.0.1:8000/questions/?test_id=${testId}`,
           {
@@ -34,28 +46,45 @@ function Questions() {
 
         const data = await response.json();
 
-        setQuestions(data);
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid questions response from server");
+        }
 
-      } catch (error) {
-        setError(error.message);
+        if (!cancelled) {
+          setQuestions(data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchQuestions();
+
+    return () => {
+      cancelled = true;
+    };
   }, [testId]);
 
-  // Fetch options for the current question
-  useEffect(() => {
-    if (questions.length === 0) return;
+  // 2. Get the current question ID
+  const currentQuestion = questions[currentIndex];
+  const currentQuestionId = currentQuestion?.id;
 
-    const questionId = questions[currentIndex].id;
+  // 3. Fetch options only when the current question changes
+  useEffect(() => {
+    if (!currentQuestionId) return;
+
+    let cancelled = false;
 
     const fetchOptions = async () => {
       try {
         const response = await fetch(
-          `http://127.0.0.1:8000/options/?question_id=${questionId}`,
+          `http://127.0.0.1:8000/options/?question_id=${currentQuestionId}`,
           {
             method: "GET",
             headers: {
@@ -70,22 +99,30 @@ function Questions() {
 
         const data = await response.json();
 
-        setQuestions((previousQuestions) =>
-          previousQuestions.map((question) =>
-            question.id === questionId
-              ? { ...question, options: data }
-              : question
-          )
-        );
-
-      } catch (error) {
-        setError(error.message);
+        if (!cancelled) {
+          setQuestions((previousQuestions) =>
+            previousQuestions.map((question) =>
+              question.id === currentQuestionId
+                ? { ...question, options: data }
+                : question
+            )
+          );
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message);
+        }
       }
     };
 
     fetchOptions();
-  }, [questions, currentIndex]);
 
+    return () => {
+      cancelled = true;
+    };
+  }, [currentQuestionId]);
+
+  // 4. Store the selected answer
   const handleAnswer = (questionId, optionId) => {
     setAnswers((previousAnswers) => ({
       ...previousAnswers,
@@ -93,40 +130,111 @@ function Questions() {
     }));
   };
 
+  // 5. Go to next question
   const nextQuestion = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((previous) => previous + 1);
     }
   };
 
+  // 6. Go to previous question
   const previousQuestion = () => {
     if (currentIndex > 0) {
       setCurrentIndex((previous) => previous - 1);
     }
   };
 
-  const submitTest = () => {
-    console.log("Selected Answers:", answers);
-    alert("Test submitted successfully!");
+  // 7. Submit test and save score in database
+  const submitTest = async () => {
+    try {
+      setSubmitting(true);
+      setError("");
+
+      const token = localStorage.getItem("access_token");
+      const userId = localStorage.getItem("user_id");
+
+      if (!userId) {
+        throw new Error("User ID not found. Please log in again.");
+      }
+
+      const response = await fetch(
+        "http://127.0.0.1:8000/scores/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            user_id: Number(userId),
+            test_id: Number(testId),
+            answers: Object.entries(answers).map(
+              ([questionId, optionId]) => ({
+                question_id: Number(questionId),
+                option_id: Number(optionId),
+              })
+            ),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          typeof data.detail === "string"
+            ? data.detail
+            : "Unable to submit test"
+        );
+      }
+
+      alert(
+        `Test Submitted Successfully!
+
+Score: ${data.score}
+Correct Answers: ${data.correct_answers}
+Total Questions: ${data.total_questions}`
+      );
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  // 8. Loading state
   if (loading) {
-    return <h2 style={{ padding: "20px" }}>Loading questions...</h2>;
+    return <h2 style={{ textAlign: "center" }}>Loading questions...</h2>;
   }
 
+  // 9. Error state
   if (error) {
-    return <p style={{ color: "red", padding: "20px" }}>{error}</p>;
+    return (
+      <p style={{ color: "red", textAlign: "center" }}>
+        {error}
+      </p>
+    );
   }
 
+  // 10. Empty questions state
   if (questions.length === 0) {
-    return <p>No questions available.</p>;
+    return (
+      <p style={{ textAlign: "center" }}>
+        No questions available for this test.
+      </p>
+    );
   }
 
-  const currentQuestion = questions[currentIndex];
+  // Prevent accessing an invalid question index
+  if (!currentQuestion) {
+    return <p>Question not found. Please refresh the page.</p>;
+  }
 
   const progress =
     ((currentIndex + 1) / questions.length) * 100;
 
+  // 11. Display question page
   return (
     <div
       style={{
@@ -144,7 +252,7 @@ function Questions() {
         Question {currentIndex + 1} of {questions.length}
       </p>
 
-      {/* Progress Bar */}
+      {/* Progress bar */}
       <div
         style={{
           width: "100%",
@@ -164,7 +272,7 @@ function Questions() {
         />
       </div>
 
-      {/* Individual Question */}
+      {/* Question */}
       <div
         style={{
           padding: "20px",
@@ -180,7 +288,7 @@ function Questions() {
           <strong>Marks:</strong> {currentQuestion.marks}
         </p>
 
-        {/* Options fetched from API */}
+        {/* Options */}
         <div style={{ marginTop: "20px" }}>
           {currentQuestion.options ? (
             currentQuestion.options.map((option) => (
@@ -214,7 +322,8 @@ function Questions() {
                   }
                 />
 
-                {" "}{option.option_text}
+                {" "}
+                {option.option_text}
               </label>
             ))
           ) : (
@@ -223,7 +332,7 @@ function Questions() {
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Previous / Next / Submit */}
       <div
         style={{
           display: "flex",
@@ -233,22 +342,29 @@ function Questions() {
       >
         <button
           onClick={previousQuestion}
-          disabled={currentIndex === 0}
+          disabled={currentIndex === 0 || submitting}
         >
           Previous
         </button>
 
         {currentIndex < questions.length - 1 ? (
-          <button onClick={nextQuestion}>
+          <button
+            onClick={nextQuestion}
+            disabled={submitting}
+          >
             Next
           </button>
         ) : (
-          <button onClick={submitTest}>
-            Submit Test
+          <button
+            onClick={submitTest}
+            disabled={submitting}
+          >
+            {submitting ? "Submitting..." : "Submit Test"}
           </button>
         )}
       </div>
 
+      {/* Answer count */}
       <p>
         Answered: {Object.keys(answers).length} / {questions.length}
       </p>
