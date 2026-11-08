@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -6,15 +7,25 @@ function Tests() {
   const navigate = useNavigate();
 
   const [tests, setTests] = useState([]);
+  const [scores, setScores] = useState([]);
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Fetch tests and previous scores
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    let cancelled = false;
 
-    const fetchTests = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(
+        setLoading(true);
+        setError("");
+
+        const token = localStorage.getItem("access_token");
+        const userId = localStorage.getItem("user_id");
+
+        // Fetch tests for selected category
+        const testsResponse = await fetch(
           `http://127.0.0.1:8000/tests/category/?category_id=${categoryId}`,
           {
             method: "GET",
@@ -25,23 +36,65 @@ function Tests() {
           }
         );
 
-        if (!response.ok) {
+        if (!testsResponse.ok) {
           throw new Error("Unable to fetch tests");
         }
 
-        const data = await response.json();
+        const testsData = await testsResponse.json();
 
-        setTests(data);
+        // Fetch latest three scores per test
+        const scoresResponse = await fetch(
+          `http://127.0.0.1:8000/scores/user/${userId}/latest`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (!scoresResponse.ok) {
+          throw new Error("Unable to fetch previous scores");
+        }
+
+        const scoresData = await scoresResponse.json();
+
+        if (!cancelled) {
+          setTests(testsData);
+          setScores(scoresData);
+        }
+
       } catch (error) {
-        setError(error.message);
+        if (!cancelled) {
+          setError(error.message);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchTests();
+    fetchData();
+
+    return () => {
+      cancelled = true;
+    };
   }, [categoryId]);
 
+  // Group scores according to test ID
+  const scoresByTest = scores.reduce((result, score) => {
+    if (!result[score.test_id]) {
+      result[score.test_id] = [];
+    }
+
+    result[score.test_id].push(score);
+
+    return result;
+  }, {});
+
+  // Navigate to questions page
   const startTest = (testId) => {
     navigate(`/questions/${testId}`);
   };
@@ -64,58 +117,112 @@ function Tests() {
           marginTop: "20px",
         }}
       >
-        {tests.map((test) => (
-          <div
-            key={test.id}
-            style={{
-              width: "280px",
-              padding: "20px",
-              border: "1px solid #ddd",
-              borderRadius: "10px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              backgroundColor: "#fff",
-            }}
-          >
-            <h3>{test.title}</h3>
+        {tests.map((test) => {
+          const testScores = scoresByTest[test.id] || [];
 
-            <p>{test.description}</p>
-
-            <p>
-              <strong>Duration:</strong> {test.duration_minutes} minutes
-            </p>
-
-            <p>
-              <strong>Status:</strong>{" "}
-              <span
-                style={{
-                  color: test.is_active ? "green" : "red",
-                  fontWeight: "bold",
-                }}
-              >
-                {test.is_active ? "Active" : "Inactive"}
-              </span>
-            </p>
-
-            <p>
-              <strong>Test ID:</strong> {test.id}
-            </p>
-
-            <button
-              disabled={!test.is_active}
-              onClick={() => startTest(test.id)}
+          return (
+            <div
+              key={test.id}
               style={{
-                padding: "10px 20px",
-                backgroundColor: test.is_active ? "#2563eb" : "#999",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: test.is_active ? "pointer" : "not-allowed",
+                width: "280px",
+                padding: "20px",
+                border: "1px solid #ddd",
+                borderRadius: "10px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                backgroundColor: "#fff",
               }}
             >
-              Start Test
-            </button>
-          </div>
-        ))}
+              <h3>{test.title}</h3>
+
+              <p>{test.description}</p>
+
+              <p>
+                <strong>Duration:</strong>{" "}
+                {test.duration_minutes} minutes
+              </p>
+
+              <p>
+                <strong>Status:</strong>{" "}
+                <span
+                  style={{
+                    color: test.is_active ? "green" : "red",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {test.is_active ? "Active" : "Inactive"}
+                </span>
+              </p>
+
+              <p>
+                <strong>Test ID:</strong> {test.id}
+              </p>
+
+              {/* Previous attempts */}
+              <div
+                style={{
+                  marginTop: "15px",
+                  marginBottom: "15px",
+                  padding: "12px",
+                  backgroundColor: "#f8fafc",
+                  borderRadius: "8px",
+                }}
+              >
+                <h4 style={{ marginTop: "0" }}>
+                  Previous Attempts
+                </h4>
+
+                {testScores.length > 0 ? (
+                  testScores.map((attempt, index) => (
+                    <div
+                      key={attempt.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px 0",
+                        borderBottom:
+                          index !== testScores.length - 1
+                            ? "1px solid #ddd"
+                            : "none",
+                        fontSize: "13px",
+                      }}
+                    >
+                      <span>Attempt {index + 1}</span>
+
+                      <strong>
+                        {attempt.score}/{attempt.total_questions}
+                      </strong>
+
+                      <span>
+                        {attempt.correct_answers} correct
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ fontSize: "13px", color: "#777" }}>
+                    No attempts yet.
+                  </p>
+                )}
+              </div>
+
+              {/* Start test button */}
+              <button
+                disabled={!test.is_active}
+                onClick={() => startTest(test.id)}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: test.is_active ? "#2563eb" : "#999",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor: test.is_active ? "pointer" : "not-allowed",
+                }}
+              >
+                Start Test
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       {!loading && tests.length === 0 && !error && (
