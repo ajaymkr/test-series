@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -8,7 +7,6 @@ function Tests() {
 
   const [tests, setTests] = useState([]);
   const [scores, setScores] = useState([]);
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +22,10 @@ function Tests() {
         const token = localStorage.getItem("access_token");
         const userId = localStorage.getItem("user_id");
 
+        if (!token || !userId) {
+          throw new Error("Please login first.");
+        }
+
         // Fetch tests for selected category
         const testsResponse = await fetch(
           `http://127.0.0.1:8000/tests/category/?category_id=${categoryId}`,
@@ -37,12 +39,12 @@ function Tests() {
         );
 
         if (!testsResponse.ok) {
-          throw new Error("Unable to fetch tests");
+          throw new Error("Unable to fetch tests.");
         }
 
         const testsData = await testsResponse.json();
 
-        // Fetch latest three scores per test
+        // Fetch latest scores for logged-in user
         const scoresResponse = await fetch(
           `http://127.0.0.1:8000/scores/user/${userId}/latest`,
           {
@@ -55,7 +57,7 @@ function Tests() {
         );
 
         if (!scoresResponse.ok) {
-          throw new Error("Unable to fetch previous scores");
+          throw new Error("Unable to fetch previous scores.");
         }
 
         const scoresData = await scoresResponse.json();
@@ -64,10 +66,9 @@ function Tests() {
           setTests(testsData);
           setScores(scoresData);
         }
-
-      } catch (error) {
+      } catch (err) {
         if (!cancelled) {
-          setError(error.message);
+          setError(err.message);
         }
       } finally {
         if (!cancelled) {
@@ -94,9 +95,13 @@ function Tests() {
     return result;
   }, {});
 
-  // Navigate to questions page
+  // Navigate to Questions page and pass category ID
   const startTest = (testId) => {
-    navigate(`/questions/${testId}`);
+    navigate(`/questions/${testId}`, {
+      state: {
+        categoryId: categoryId,
+      },
+    });
   };
 
   return (
@@ -107,7 +112,11 @@ function Tests() {
 
       {loading && <p>Loading tests...</p>}
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && (
+        <p style={{ color: "red" }}>
+          {error}
+        </p>
+      )}
 
       <div
         style={{
@@ -117,112 +126,125 @@ function Tests() {
           marginTop: "20px",
         }}
       >
-        {tests.map((test) => {
-          const testScores = scoresByTest[test.id] || [];
+        {!loading &&
+          tests.map((test) => {
+            // Get latest three scores for this test
+            const testScores = (scoresByTest[test.id] || [])
+              .slice()
+              .sort(
+                (a, b) =>
+                  new Date(b.submitted_at) -
+                  new Date(a.submitted_at)
+              )
+              .slice(0, 3);
 
-          return (
-            <div
-              key={test.id}
-              style={{
-                width: "280px",
-                padding: "20px",
-                border: "1px solid #ddd",
-                borderRadius: "10px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                backgroundColor: "#fff",
-              }}
-            >
-              <h3>{test.title}</h3>
+            return (
+              <div
+                key={test.id}
+                style={{
+                  width: "280px",
+                  padding: "20px",
+                  border: "1px solid #ddd",
+                  borderRadius: "10px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <h3>{test.title}</h3>
 
-              <p>{test.description}</p>
+                <p>{test.description}</p>
 
-              <p>
-                <strong>Duration:</strong>{" "}
-                {test.duration_minutes} minutes
-              </p>
+                <p>
+                  <strong>Duration:</strong>{" "}
+                  {test.duration_minutes} minutes
+                </p>
 
-              <p>
-                <strong>Status:</strong>{" "}
-                <span
+                <p>
+                  <strong>Status:</strong>{" "}
+                  <span
+                    style={{
+                      color: test.is_active ? "green" : "red",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {test.is_active ? "Active" : "Inactive"}
+                  </span>
+                </p>
+
+                <p>
+                  <strong>Test ID:</strong> {test.id}
+                </p>
+
+                {/* Previous attempts */}
+                <div
                   style={{
-                    color: test.is_active ? "green" : "red",
-                    fontWeight: "bold",
+                    marginTop: "15px",
+                    marginBottom: "15px",
+                    padding: "12px",
+                    backgroundColor: "#f8fafc",
+                    borderRadius: "8px",
                   }}
                 >
-                  {test.is_active ? "Active" : "Inactive"}
-                </span>
-              </p>
+                  <h4 style={{ marginTop: "0" }}>
+                    Previous Attempts
+                  </h4>
 
-              <p>
-                <strong>Test ID:</strong> {test.id}
-              </p>
+                  {testScores.length > 0 ? (
+                    testScores.map((attempt, index) => (
+                      <div
+                        key={attempt.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "8px 0",
+                          borderBottom:
+                            index !== testScores.length - 1
+                              ? "1px solid #ddd"
+                              : "none",
+                          fontSize: "13px",
+                        }}
+                      >
+                        <span>Attempt {index + 1}</span>
 
-              {/* Previous attempts */}
-              <div
-                style={{
-                  marginTop: "15px",
-                  marginBottom: "15px",
-                  padding: "12px",
-                  backgroundColor: "#f8fafc",
-                  borderRadius: "8px",
-                }}
-              >
-                <h4 style={{ marginTop: "0" }}>
-                  Previous Attempts
-                </h4>
+                        <strong>
+                          {attempt.score}/{attempt.total_questions}
+                        </strong>
 
-                {testScores.length > 0 ? (
-                  testScores.map((attempt, index) => (
-                    <div
-                      key={attempt.id}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "8px 0",
-                        borderBottom:
-                          index !== testScores.length - 1
-                            ? "1px solid #ddd"
-                            : "none",
-                        fontSize: "13px",
-                      }}
-                    >
-                      <span>Attempt {index + 1}</span>
+                        <span>
+                          {attempt.correct_answers} correct
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{ fontSize: "13px", color: "#777" }}>
+                      No attempts yet.
+                    </p>
+                  )}
+                </div>
 
-                      <strong>
-                        {attempt.score}/{attempt.total_questions}
-                      </strong>
-
-                      <span>
-                        {attempt.correct_answers} correct
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p style={{ fontSize: "13px", color: "#777" }}>
-                    No attempts yet.
-                  </p>
-                )}
+                {/* Start test button */}
+                <button
+                  disabled={!test.is_active}
+                  onClick={() => startTest(test.id)}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: test.is_active
+                      ? "#2563eb"
+                      : "#999",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: test.is_active
+                      ? "pointer"
+                      : "not-allowed",
+                  }}
+                >
+                  Start Test
+                </button>
               </div>
-
-              {/* Start test button */}
-              <button
-                disabled={!test.is_active}
-                onClick={() => startTest(test.id)}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: test.is_active ? "#2563eb" : "#999",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: test.is_active ? "pointer" : "not-allowed",
-                }}
-              >
-                Start Test
-              </button>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
 
       {!loading && tests.length === 0 && !error && (

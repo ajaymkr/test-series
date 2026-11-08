@@ -1,9 +1,18 @@
-
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 
 function Questions() {
   const { testId } = useParams();
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Receive category ID from Tests.jsx
+  const categoryId = location.state?.categoryId;
 
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
@@ -13,7 +22,7 @@ function Questions() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // 1. Fetch all questions for the selected test
+  // 1. Fetch all questions for selected test
   useEffect(() => {
     let cancelled = false;
 
@@ -22,7 +31,6 @@ function Questions() {
         setLoading(true);
         setError("");
 
-        // Reset previous test data
         setQuestions([]);
         setAnswers({});
         setCurrentIndex(0);
@@ -41,13 +49,13 @@ function Questions() {
         );
 
         if (!response.ok) {
-          throw new Error("Unable to fetch questions");
+          throw new Error("Unable to fetch questions.");
         }
 
         const data = await response.json();
 
         if (!Array.isArray(data)) {
-          throw new Error("Invalid questions response from server");
+          throw new Error("Invalid questions response from server.");
         }
 
         if (!cancelled) {
@@ -71,11 +79,11 @@ function Questions() {
     };
   }, [testId]);
 
-  // 2. Get the current question ID
+  // 2. Get current question ID
   const currentQuestion = questions[currentIndex];
   const currentQuestionId = currentQuestion?.id;
 
-  // 3. Fetch options only when the current question changes
+  // 3. Fetch options when current question changes
   useEffect(() => {
     if (!currentQuestionId) return;
 
@@ -94,7 +102,7 @@ function Questions() {
         );
 
         if (!response.ok) {
-          throw new Error("Unable to fetch options");
+          throw new Error("Unable to fetch options.");
         }
 
         const data = await response.json();
@@ -122,7 +130,7 @@ function Questions() {
     };
   }, [currentQuestionId]);
 
-  // 4. Store the selected answer
+  // 4. Store selected answer
   const handleAnswer = (questionId, optionId) => {
     setAnswers((previousAnswers) => ({
       ...previousAnswers,
@@ -144,7 +152,7 @@ function Questions() {
     }
   };
 
-  // 7. Submit test and save score in database
+  // 7. Submit test and redirect to Tests page
   const submitTest = async () => {
     try {
       setSubmitting(true);
@@ -153,8 +161,14 @@ function Questions() {
       const token = localStorage.getItem("access_token");
       const userId = localStorage.getItem("user_id");
 
-      if (!userId) {
-        throw new Error("User ID not found. Please log in again.");
+      if (!token || !userId) {
+        throw new Error("Please login again.");
+      }
+
+      if (!categoryId) {
+        throw new Error(
+          "Category ID is missing. Please return to the tests page and start the test again."
+        );
       }
 
       const response = await fetch(
@@ -185,19 +199,18 @@ function Questions() {
         throw new Error(
           typeof data.detail === "string"
             ? data.detail
-            : "Unable to submit test"
+            : "Unable to submit test."
         );
       }
 
-      alert(
-        `Test Submitted Successfully!
+      // No success popup.
+      // Redirect to the same category's Tests page.
+      navigate(`/tests/${categoryId}`, {
+        replace: true,
+      });
 
-Score: ${data.score}
-Correct Answers: ${data.correct_answers}
-Total Questions: ${data.total_questions}`
-      );
     } catch (err) {
-      alert(err.message);
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -205,7 +218,11 @@ Total Questions: ${data.total_questions}`
 
   // 8. Loading state
   if (loading) {
-    return <h2 style={{ textAlign: "center" }}>Loading questions...</h2>;
+    return (
+      <h2 style={{ textAlign: "center" }}>
+        Loading questions...
+      </h2>
+    );
   }
 
   // 9. Error state
@@ -226,9 +243,12 @@ Total Questions: ${data.total_questions}`
     );
   }
 
-  // Prevent accessing an invalid question index
   if (!currentQuestion) {
-    return <p>Question not found. Please refresh the page.</p>;
+    return (
+      <p>
+        Question not found. Please refresh the page.
+      </p>
+    );
   }
 
   const progress =
