@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import ARRAY
+from datetime import datetime
 
 from .connection import Base
 
@@ -65,6 +66,28 @@ class Option(Base):
     )
     option_text = Column(Text, nullable=False)
     is_correct = Column(Boolean)
+
+class Score(Base):
+    __tablename__ = "scores"
+
+    id = Column(Integer, primary_key=True)
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    test_id = Column(
+        Integer,
+        ForeignKey("tests.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    score = Column(Integer, nullable=False)
+    total_questions = Column(Integer, nullable=False)
+    correct_answers = Column(Integer, nullable=False)
+    submitted_at = Column(DateTime, default=datetime.utcnow)
 
 
 class Attempt(Base):

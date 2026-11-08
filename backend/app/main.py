@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from database.connection import get_db, Base, engine
 from database.models import Test
 from schemas.schemas import TestCreate
-from routers import user,test,attempt,question,category,option
+from routers import user,test,attempt,question,category,option,score
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import models
@@ -37,6 +37,7 @@ app.include_router(test.router)
 app.include_router(question.router)
 app.include_router(option.router)
 app.include_router(attempt.router)
+app.include_router(score.router)
 
 
 app.include_router(option.router)
