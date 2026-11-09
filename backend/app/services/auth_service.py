@@ -8,24 +8,42 @@ from sqlalchemy.orm import Session
 
 from database.models import User
 
-# password_hash = PasswordHash.recommended()
+password_hash = PasswordHash.recommended()
 
 SECRET_KEY = os.environ["JWT_SECRET_KEY"]
 ALGORITHM = "HS256"
 
 
-def authenticate_user(
-    db: Session,
-    email: str,
-    password: str
-):
+# def authenticate_user(
+#     db: Session,
+#     email: str,
+#     password: str
+# ):
+#     user = db.query(User).filter(User.email == email).first()
+#     print("password: ", user.password_hash)
+#     print("password : ", password)
+
+#     if user is None:
+#         return None
+
+#     if not password_hash.verify(password, user.password_hash):
+#         return None
+
+#     return user
+
+def authenticate_user(db: Session, email: str, password: str):
+
     user = db.query(User).filter(User.email == email).first()
 
     if user is None:
+        print("User not found")
         return None
 
-    # if not password_hash.verify(password, user.password_hash):
-    #     return None
+    is_valid = password_hash.verify(password, user.password_hash)
+
+
+    if not is_valid:
+        return None
 
     return user
 
