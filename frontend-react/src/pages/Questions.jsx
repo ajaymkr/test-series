@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   useParams,
@@ -154,6 +155,16 @@ function Questions() {
 
   // 7. Submit test and redirect to Tests page
   const submitTest = async () => {
+    // Prevent accidental double submission
+    if (submitting) return;
+
+    // Ask confirmation before submitting
+    const confirmed = window.confirm(
+      "Are you sure you want to submit the test?"
+    );
+
+    if (!confirmed) return;
+
     try {
       setSubmitting(true);
       setError("");
@@ -203,8 +214,7 @@ function Questions() {
         );
       }
 
-      // No success popup.
-      // Redirect to the same category's Tests page.
+      // Successful submission: redirect to same category
       navigate(`/tests/${categoryId}`, {
         replace: true,
       });
@@ -228,9 +238,13 @@ function Questions() {
   // 9. Error state
   if (error) {
     return (
-      <p style={{ color: "red", textAlign: "center" }}>
-        {error}
-      </p>
+      <div style={{ textAlign: "center", marginTop: "30px" }}>
+        <p style={{ color: "red" }}>{error}</p>
+
+        <button onClick={() => navigate(`/tests/${categoryId}`)}>
+          Back to Tests
+        </button>
+      </div>
     );
   }
 
@@ -266,7 +280,34 @@ function Questions() {
         boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
       }}
     >
-      <h2>Online Test</h2>
+      {/* Header with Submit button on top-right */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "10px",
+          marginBottom: "20px",
+        }}
+      >
+        <h2 style={{ margin: 0 }}>Online Test</h2>
+
+        <button
+          onClick={submitTest}
+          disabled={submitting}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: submitting ? "#999" : "#16a34a",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: submitting ? "not-allowed" : "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          {submitting ? "Submitting..." : "Submit Test"}
+        </button>
+      </div>
 
       <p>
         Question {currentIndex + 1} of {questions.length}
@@ -352,12 +393,14 @@ function Questions() {
         </div>
       </div>
 
-      {/* Previous / Next / Submit */}
+      {/* Previous / Next buttons only */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
           marginTop: "25px",
+          gap: "10px",
         }}
       >
         <button
@@ -367,19 +410,12 @@ function Questions() {
           Previous
         </button>
 
-        {currentIndex < questions.length - 1 ? (
+        {currentIndex < questions.length - 1 && (
           <button
             onClick={nextQuestion}
             disabled={submitting}
           >
             Next
-          </button>
-        ) : (
-          <button
-            onClick={submitTest}
-            disabled={submitting}
-          >
-            {submitting ? "Submitting..." : "Submit Test"}
           </button>
         )}
       </div>

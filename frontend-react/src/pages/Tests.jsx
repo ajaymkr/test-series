@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -66,6 +67,7 @@ function Tests() {
           setTests(testsData);
           setScores(scoresData);
         }
+
       } catch (err) {
         if (!cancelled) {
           setError(err.message);
@@ -95,7 +97,7 @@ function Tests() {
     return result;
   }, {});
 
-  // Navigate to Questions page and pass category ID
+  // Navigate to Questions page
   const startTest = (testId) => {
     navigate(`/questions/${testId}`, {
       state: {
@@ -104,8 +106,18 @@ function Tests() {
     });
   };
 
+  // Navigate to Review page
+  const reviewTest = (scoreId) => {
+    navigate(`/review/${scoreId}`, {
+      state: {
+        categoryId: categoryId,
+      },
+    });
+  };
+
   return (
     <div style={{ padding: "20px" }}>
+
       <h2>Available Tests</h2>
 
       <p>Category ID: {categoryId}</p>
@@ -126,8 +138,10 @@ function Tests() {
           marginTop: "20px",
         }}
       >
+
         {!loading &&
           tests.map((test) => {
+
             // Get latest three scores for this test
             const testScores = (scoresByTest[test.id] || [])
               .slice()
@@ -137,6 +151,9 @@ function Tests() {
                   new Date(a.submitted_at)
               )
               .slice(0, 3);
+
+            // Latest attempt
+            const latestAttempt = testScores[0];
 
             return (
               <div
@@ -150,6 +167,7 @@ function Tests() {
                   backgroundColor: "#fff",
                 }}
               >
+
                 <h3>{test.title}</h3>
 
                 <p>{test.description}</p>
@@ -185,6 +203,7 @@ function Tests() {
                     borderRadius: "8px",
                   }}
                 >
+
                   <h4 style={{ marginTop: "0" }}>
                     Previous Attempts
                   </h4>
@@ -205,6 +224,7 @@ function Tests() {
                           fontSize: "13px",
                         }}
                       >
+
                         <span>Attempt {index + 1}</span>
 
                         <strong>
@@ -214,6 +234,7 @@ function Tests() {
                         <span>
                           {attempt.correct_answers} correct
                         </span>
+
                       </div>
                     ))
                   ) : (
@@ -221,14 +242,35 @@ function Tests() {
                       No attempts yet.
                     </p>
                   )}
+
                 </div>
+
+                {/* Review Last Attempt button */}
+                {latestAttempt && (
+                  <button
+                    onClick={() => reviewTest(latestAttempt.id)}
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      marginBottom: "10px",
+                      backgroundColor: "#16a34a",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Review Last Attempt
+                  </button>
+                )}
 
                 {/* Start test button */}
                 <button
                   disabled={!test.is_active}
                   onClick={() => startTest(test.id)}
                   style={{
-                    padding: "10px 20px",
+                    width: "100%",
+                    padding: "10px",
                     backgroundColor: test.is_active
                       ? "#2563eb"
                       : "#999",
@@ -242,14 +284,17 @@ function Tests() {
                 >
                   Start Test
                 </button>
+
               </div>
             );
           })}
+
       </div>
 
       {!loading && tests.length === 0 && !error && (
         <p>No tests available in this category.</p>
       )}
+
     </div>
   );
 }

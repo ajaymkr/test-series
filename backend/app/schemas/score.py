@@ -19,15 +19,15 @@
 
 
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
-class AnswerSubmit(BaseModel):
+class AnswerItem(BaseModel):
     question_id: int
-    option_id: int
+    option_id: Optional[int] = None
 
 
 class ScoreCreate(BaseModel):
     user_id: int
     test_id: int
-    answers: List[AnswerSubmit]
+    answers: List[AnswerItem]

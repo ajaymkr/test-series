@@ -89,6 +89,29 @@ class Score(Base):
     correct_answers = Column(Integer, nullable=False)
     submitted_at = Column(DateTime, default=datetime.utcnow)
 
+class ScoreAnswer(Base):
+    __tablename__ = "score_answers"
+
+    id = Column(Integer, primary_key=True)
+
+    score_id = Column(
+        Integer,
+        ForeignKey("scores.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    question_id = Column(
+        Integer,
+        ForeignKey("questions.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    selected_option_id = Column(
+        Integer,
+        ForeignKey("options.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
 
 class Attempt(Base):
     __tablename__ = "attempts"

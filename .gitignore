@@ -80,3 +80,13 @@ dist/
 
 *.tmp
 *.temp
+
+# =========================
+# Node.js / React
+# =========================
+
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
