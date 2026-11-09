@@ -1,0 +1,209 @@
+
+.dashboard-container {
+  min-height: 100vh;
+  padding: 25px 5%;
+  background: #f1f5f9;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+/* Header */
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 18px 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  color: #1e3a8a;
+  font-size: 25px;
+}
+
+.dashboard-header p {
+  margin: 5px 0 0;
+  color: #64748b;
+}
+
+.logout-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 11px 22px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
+}
+
+/* Welcome */
+
+.welcome-section {
+  margin-top: 25px;
+  padding: 30px;
+  background: linear-gradient(120deg, #1d4ed8, #2563eb);
+  color: white;
+  border-radius: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.welcome-section h2 {
+  margin: 0 0 10px;
+  font-size: 27px;
+}
+
+.welcome-section p {
+  margin: 0;
+  color: #dbeafe;
+}
+
+.welcome-icon {
+  font-size: 55px;
+}
+
+/* Profile */
+
+.profile-section {
+  margin-top: 25px;
+}
+
+.profile-section > h3 {
+  color: #1e293b;
+  margin-bottom: 15px;
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: white;
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.profile-avatar {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 27px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.profile-details h3 {
+  margin: 0 0 6px;
+  color: #1e293b;
+}
+
+.profile-details p {
+  margin: 0;
+  color: #64748b;
+}
+
+.profile-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.role-badge {
+  background: #dcfce7;
+  color: #15803d;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+/* Tests */
+
+.tests-section {
+  margin-top: 30px;
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.tests-section h2 {
+  color: #1e293b;
+  margin-top: 0;
+}
+
+.section-description {
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+.error-message {
+  color: #dc2626;
+}
+
+/* Footer */
+
+.dashboard-footer {
+  text-align: center;
+  color: #94a3b8;
+  padding: 30px 10px 10px;
+  font-size: 13px;
+}
+
+/* Responsive */
+
+@media (max-width: 600px) {
+  .dashboard-container {
+    padding: 15px;
+  }
+
+  .dashboard-header {
+    padding: 15px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 21px;
+  }
+
+  .welcome-section {
+    padding: 22px;
+  }
+
+  .welcome-section h2 {
+    font-size: 21px;
+  }
+
+  .welcome-icon {
+    font-size: 38px;
+  }
+
+  .profile-card {
+    padding: 15px;
+  }
+
+  .profile-meta {
+    flex-wrap: wrap;
+  }
+
+  .tests-section {
+    padding: 18px;
+  }
+}
