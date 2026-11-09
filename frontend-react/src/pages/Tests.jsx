@@ -118,6 +118,22 @@ function Tests() {
   return (
     <div style={{ padding: "20px" }}>
 
+      <button
+        onClick={() => navigate("/users")}
+        style={{
+          padding: "10px 18px",
+          marginBottom: "15px",
+          backgroundColor: "#475569",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        ← Back to Dashboard
+      </button>
+
+
       <h2>Available Tests</h2>
 
       <p>Category ID: {categoryId}</p>
